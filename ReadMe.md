@@ -58,7 +58,7 @@ switched to db test
 - 5.mysql登录测试
 ```
 # 示例
-➜  db-proxy mysql -utest -ptest --host=127.0.0.1 --port=3307 -Ddb_proxy
+➜  mysql -utest -ptest --host=127.0.0.1 --port=3307 -Ddb_proxy
 Warning: Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
