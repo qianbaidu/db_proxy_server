@@ -366,7 +366,6 @@ func (m *MongoProxyHandler) runCmd(cmd interface{}, res interface{}, db string, 
 		err = errors.New(fmt.Sprintf("error: %s", err))
 		return err
 	}
-	eventLog.UpdateDatatime = time.Now().Format("2006-01-02 15:04:05")
 	service.RecordEvent(eventLog)
 	return nil
 }

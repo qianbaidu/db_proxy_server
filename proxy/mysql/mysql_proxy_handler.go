@@ -168,7 +168,6 @@ func (h *MysqlProxyHandler) buildSimpleShowResultset(values []interface{}, name 
 
 	result = &Result{Resultset: r,}
 	evnetLog.Status = util.SQL_EXEC_FINISHED
-	evnetLog.UpdateDatatime = time.Now().Format("2006-01-02 15:04:05")
 	service.RecordEvent(evnetLog)
 
 	return result, nil
@@ -299,16 +298,10 @@ func (h *MysqlProxyHandler) tryExecute(sql string) (result *Result, err error) {
 }
 
 func (h *MysqlProxyHandler) Execute(sql string) (result *Result, err error) {
-	//res := common.ExecEvent{
-	//	StartTime: util.GetDateTime(),
-	//	Status:    util.SQL_EXEC_START,
-	//	User:      h.User,
-	//	Sql:       sql,
-	//	DbAlias:   h.CurrentDb,
-	//}
+	e := h.NewEventLog(sql)
 
-	//ch := make(chan bool, 1)
-	//go func(c chan bool) {
+	ch := make(chan bool, 1)
+	go func(c chan bool) {
 	err = h.Conn.SetAutoCommit()
 	if err != nil {
 		log.Error("SetAutoCommit error : ", err)
@@ -323,24 +316,22 @@ func (h *MysqlProxyHandler) Execute(sql string) (result *Result, err error) {
 		}
 	}
 
-	//c <- true
-	//}(ch)
+	c <- true
+	}(ch)
 
-	//select {
-	//case <-ch:
-	//	res.Status = util.SQL_EXEC_FINISHED
-	//case <-time.After(util.DEFAULT_EXEC_SQL_TIME_OUT * time.Second):
-	//	res.Status = util.SQL_EXEC_TIMEOUT
-	//	err = NewError(ER_LOCK_WAIT_TIMEOUT, "sql查询超时")
-	//	log.Error(fmt.Sprintf("执行sql [%s] 超时，KILL QUERY %d", sql, h.Conn.GetConnectionID()))
-	//	//_, err := h.killQuery(h.Conn.GetConnectionID())
-	//	//if err != nil {
-	//	//	log.Error("kill query failed ", err)
-	//	//}
-	//}
-
-	//res.EndTime = util.GetDateTime()
-	//common.EvenetLog.Push(res)
+	select {
+	case <-ch:
+		e.Status = util.SQL_EXEC_FINISHED
+	case <-time.After(util.DEFAULT_EXEC_SQL_TIME_OUT * time.Second):
+		e.Status = util.SQL_EXEC_TIMEOUT
+		err = NewError(ER_LOCK_WAIT_TIMEOUT, "sql查询超时")
+		log.Error(fmt.Sprintf("执行sql [%s] 超时，KILL QUERY %d", sql, h.Conn.GetConnectionID()))
+		_, err := h.killQuery(h.Conn.GetConnectionID())
+		if err != nil {
+			log.Error("kill query failed ", err)
+		}
+	}
+	service.RecordEvent(e)
 	return result, err
 }
 
