@@ -1,0 +1,37 @@
+# project
+data_tmp
+build
+*.db
+*.pid
+
+#
+.vscode
+
+# OSX
+#
+.DS_Store
+
+.idea
+
+# testing
+/coverage
+
+# production
+
+
+# misc
+.DS_Store
+
+db-proxy
+.idea
+
+cmd
+! cmd/*.go
+conf
+
+! conf/app.ini
+! conf/app.go
+.Archive/
+
+*-bak
+*-bak1
